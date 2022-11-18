@@ -19,5 +19,5 @@ int main()
 	LineDecect ld;
 	vector<Point> p = ld.harrisCornorDetect(img, 3);
 	ld.confirmLine(p, img, 10, 5);
-	// ld.edgeDetect(img);
+	ld.edgeDetect(img);
 }
