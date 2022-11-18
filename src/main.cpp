@@ -16,6 +16,7 @@ int main()
 	}
 	Mat img = srcImage.clone();
 
+	int a;
 	LineDecect ld;
 	vector<Point> p = ld.harrisCornorDetect(img, 3);
 	ld.confirmLine(p, img, 10, 5);
