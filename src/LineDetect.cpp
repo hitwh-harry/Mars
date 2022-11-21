@@ -5,11 +5,11 @@ Mat LineDecect::edgeDetect(Mat img)
     Mat dstImage, edge, grayImage;
     dstImage.create(img.size(), img.type());
     cvtColor(img, grayImage, COLOR_BGR2GRAY);
-    blur(grayImage, edge, Size(7, 7));
+    blur(grayImage, edge, Size(3, 3));
     Canny(edge, edge, 3, 9, 3);
 
-    // imshow("Canny边缘检测", edge);
-    // waitKey(0);
+    imshow("Canny边缘检测", edge);
+    waitKey(0);
     return edge;
 }
 
@@ -20,7 +20,7 @@ void LineDecect::confirmLine(vector<Point> p, Mat srcImage, int edge_n, int temp
     Mat dstImage, edge, grayImage;
     dstImage.create(srcImage.size(), srcImage.type());
     cvtColor(srcImage, grayImage, COLOR_BGR2GRAY);
-    blur(grayImage, edge, Size(7, 7));
+    blur(grayImage, edge, Size(3, 3));
     Canny(edge, edge, 3, 9, 3);
 
     // imshow("Canny边缘检测", edge);
@@ -28,7 +28,7 @@ void LineDecect::confirmLine(vector<Point> p, Mat srcImage, int edge_n, int temp
 
     int p_num = p.size();
     int line_num = 0;
-    vector<pair<double, double>> line_kb; //储存检测到的直线的k和b
+    list<pair<double, double>> line_kb; //储存检测到的直线的k和b
 
     //每两点之间检测是由有足够边缘点
     for (int i = 0; i < p_num; i++)
@@ -60,6 +60,7 @@ void LineDecect::confirmLine(vector<Point> p, Mat srcImage, int edge_n, int temp
             //若有，则重新拟合直线，保存k和b
             if (p_edge.size() >= 0.8 * edge_n)
             {
+
                 line_num++;
                 int t1, t2, t3, t4;
                 t1 = t2 = t3 = t4 = 0;
@@ -75,8 +76,8 @@ void LineDecect::confirmLine(vector<Point> p, Mat srcImage, int edge_n, int temp
                 double b = (double)(t4 * t2 - t1 * t3) / (n * t4 - t1 * t1);
                 line_kb.push_back({k, b});
 
-                // cout << k << endl<< b << endl << endl;
-                line(srcImage, Point(0, b), Point(1022, 1022 * k + b), Scalar(0, 0, 255));
+                // cout << k <<" "<< b << endl << endl;
+                // line(srcImage, Point(0, b), Point(1022, 1022 * k + b), Scalar(0, 0, 255));
                 // if (line_num == 3)
                 // {
                 //     cout << p[i] << endl
@@ -90,20 +91,63 @@ void LineDecect::confirmLine(vector<Point> p, Mat srcImage, int edge_n, int temp
     }
     cout << "line num: " << line_num << endl;
 
-    //通过找3对平行直线，去掉错误的直线
-    // int n = line_kb.size();
-    // for (int i = 0; i < n; i++)
-    // {
-    //     for (int j = i + 1; j < n; j++)
-    //     {
-    //         double a = abs(line_kb[i].first / line_kb[j].first);
-    //         double b = abs(line_kb[i].second / line_kb[j].second);
-    //         a = a > 1 ? 1 / a : a;
-    //         b = b > 1 ? 1 / b : b;
+    //筛选3对直线
+    for (int k = 0; k < 3; k++)
+    {
+        list<pair<double, double>>::iterator i;
+        list<pair<double, double>>::iterator j;
 
-    //         //不对，若找到一组ij则ij都应去掉
-    //     }
-    // }
+        double max = 0;
+        list<pair<double, double>>::iterator m_i;
+        list<pair<double, double>>::iterator m_j;
+
+        for (i = line_kb.begin(); i != line_kb.end(); i++)
+        {
+            j = i;
+            j++;
+            for (; j != line_kb.end(); j++)
+            {
+                double x = abs((*i).first / (*j).first);
+                double y = abs((*i).second / (*j).second);
+                x = x > 1 ? 1 / x : x;
+                y = y > 1 ? 1 / y : y;
+
+                if ((*i).first == 0 || (*j).first == 0)
+                {
+                    x = y;
+                }
+                else if ((*i).second != 0 && (*j).second != 0)
+                {
+                    x = (x + y) / 2;
+                }
+
+                if (x > max)
+                {
+                    max = x;
+                    m_i = i;
+                    m_j = j;
+                }
+            }
+        }
+
+        line(srcImage, Point(0, (*m_i).second), Point(1022, 1022 * (*m_i).first + (*m_i).second), Scalar(0, 0, 255));
+        line(srcImage, Point(0, (*m_j).second), Point(1022, 1022 * (*m_j).first + (*m_j).second), Scalar(0, 0, 255));
+
+        for (i = line_kb.begin(); i != line_kb.end(); i++)
+        {
+            cout << (*i).first << " " << (*i).second << endl;
+        }
+        cout << endl;
+
+        line_kb.erase(m_i);
+        line_kb.erase(m_j);
+
+        for (i = line_kb.begin(); i != line_kb.end(); i++)
+        {
+            cout << (*i).first << " " << (*i).second << endl;
+        }
+        cout << endl;
+    }
 draw:
     namedWindow("line", 0);
     imshow("line", srcImage);

@@ -5,6 +5,7 @@
 #include "opencv2/imgproc.hpp"
 #include <iostream>
 #include <vector>
+#include <list>
 #include <utility>
 
 using namespace std;

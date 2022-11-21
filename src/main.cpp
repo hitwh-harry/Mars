@@ -7,7 +7,7 @@ int main()
 	
 
 	Mat srcImage;
-	srcImage = imread("/home/harry/project/Mars/pictures/7_1.jpg"); //../pictures/4_1.jpg"  //768*1024
+	srcImage = imread("/home/harry/project/Mars/pictures/5_1.jpg"); //../pictures/4_1.jpg"  //768*1024
 
 	if (srcImage.empty())
 	{
