@@ -17,8 +17,11 @@ int main()
 	Mat img = srcImage.clone();
 
 	LineDecect ld;
-	vector<Point> p = ld.harrisCornorDetect(img, 3);
-	ld.confirmLine(p, img, 10, 5);
+	// vector<Point> p = ld.harrisCornorDetect(img, 3);
+	// ld.edgeKbLine(p, img, 10, 5);
 	// ld.edgeDetect(img);
+
+
+	ld.harrisCornorDetect(img, 20);
 	
 }

@@ -16,7 +16,9 @@ class LineDecect
 public:
     Mat edgeDetect(Mat srcImage);
 
-    void confirmLine(vector<Point> p, Mat srcImage, int edge_n, int template_size);
+    void edgeKbLine(vector<Point> p, Mat srcImage, int edge_n, int template_size);
+
+    void verticalFindLine(vector<Point> p, Mat srcImage, int edge_n);
 
     vector<Point> harrisCornorDetect(Mat srcImage, int abs_dist);
 

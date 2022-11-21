@@ -1,19 +1,26 @@
 #include "LineDetect.h"
 
-Mat LineDecect::edgeDetect(Mat img)
+void verticalFindLine(vector<Point> p, Mat srcImage, int edge_n)
+// edge_n为每两个点之间采样几个点
 {
-    Mat dstImage, edge, grayImage;
-    dstImage.create(img.size(), img.type());
-    cvtColor(img, grayImage, COLOR_BGR2GRAY);
-    blur(grayImage, edge, Size(3, 3));
-    Canny(edge, edge, 3, 9, 3);
+    int p_num = p.size();
+    for (int i = 0; i < p_num; i++)
+    {
+        for (int j = i + 1; j < p_num; j++)
+        {
+            double k = (double)(p[j].y - p[i].y) / (p[j].x - p[i].x);
+            k = -1 / k; //垂直线的斜率
 
-    imshow("Canny边缘检测", edge);
-    waitKey(0);
-    return edge;
+            for (int l = 1; l < edge_n; l++)
+            {
+                Point pp = p[i] + (double)l / edge_n * (p[j] - p[i]);
+                double b = pp.y - k * pp.x;
+            }
+        }
+    }
 }
 
-void LineDecect::confirmLine(vector<Point> p, Mat srcImage, int edge_n, int template_size)
+void LineDecect::edgeKbLine(vector<Point> p, Mat srcImage, int edge_n, int template_size)
 // edge_n为每两个点之间采样几个点
 {
     // Canny 边缘检测
@@ -152,6 +159,19 @@ draw:
     namedWindow("line", 0);
     imshow("line", srcImage);
     waitKey(0);
+}
+
+Mat LineDecect::edgeDetect(Mat img)
+{
+    Mat dstImage, edge, grayImage;
+    dstImage.create(img.size(), img.type());
+    cvtColor(img, grayImage, COLOR_BGR2GRAY);
+    blur(grayImage, edge, Size(3, 3));
+    Canny(edge, edge, 3, 9, 3);
+
+    imshow("Canny边缘检测", edge);
+    waitKey(0);
+    return edge;
 }
 
 vector<Point> LineDecect::harrisCornorDetect(Mat srcImage, int abs_dist)
