@@ -13,14 +13,22 @@ using namespace cv;
 
 class LineDecect
 {
+    Mat srcImage;
+    Mat srcGray;
+
 public:
-    Mat edgeDetect(Mat srcImage);
 
-    void edgeKbLine(vector<Point> p, Mat srcImage, int edge_n, int template_size);
+    LineDecect(Mat srcImage);
 
-    void verticalFindLine(vector<Point> p, Mat srcImage, int edge_n);
+    Mat edgeDetect();
 
-    vector<Point> harrisCornorDetect(Mat srcImage, int abs_dist);
+    void edgeFindLine(vector<Point> p, int edge_n, int template_size);
+
+    Point verticalPoint(Point p, Point p1, Point p2);
+
+    void verticalFindLine(vector<Point> pv, int edge_n);
+
+    vector<Point> harrisCornorDetect(int abs_dist);
 
     int downSample();
 

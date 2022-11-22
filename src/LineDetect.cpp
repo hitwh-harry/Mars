@@ -1,33 +1,93 @@
 #include "LineDetect.h"
 
-void verticalFindLine(vector<Point> p, Mat srcImage, int edge_n)
-// edge_n为每两个点之间采样几个点
+//从p的垂直线查找梯度变化大的点
+Point LineDecect::verticalPoint(Point p, Point p1, Point p2)
 {
-    int p_num = p.size();
-    for (int i = 0; i < p_num; i++)
+    double k, b;
+    if (p2.y != p1.y)
     {
-        for (int j = i + 1; j < p_num; j++)
-        {
-            double k = (double)(p[j].y - p[i].y) / (p[j].x - p[i].x);
-            k = -1 / k; //垂直线的斜率
-
-            for (int l = 1; l < edge_n; l++)
-            {
-                Point pp = p[i] + (double)l / edge_n * (p[j] - p[i]);
-                double b = pp.y - k * pp.x;
-            }
-        }
+        k = (double)(p1.x - p2.x) / (p2.y - p1.y); //垂直线的斜率-1 / k
+        b = p.y - k * p.x;
     }
+    else
+    {
+        k = srcImage.rows + 1; // k理论最大值
+    }
+
+    list<Point> plist;
+
+    if (k >= -1 && k <= 1)
+    {
+        int x = p.x - 10;
+        if (x < 0)
+            x = 0;
+        for (; x - p.x <= 10 && x < srcImage.cols; x++)
+            plist.push_back(Point(x, k * x + b));
+    }
+    else if (k == srcImage.rows + 1)
+    {
+        int y = p.y - 10;
+        if (y < 0)
+            y = 0;
+        for (; y - p.y <= 10 && y < srcImage.rows; y++)
+            plist.push_front(Point(p.x, y));
+    }
+    else
+    {
+        int y = p.y - 10;
+        if (y < 0)
+            y = 0;
+        for (; y - p.y <= 10 && y < srcImage.rows; y++)
+            plist.push_front(Point((y - b) / k, y));
+    }
+
+    list<Point>::iterator it = plist.begin();
+    while (it != plist.end())
+    {
+        circle(srcImage, (*it), 2, Scalar(0, 0, 255));
+        uchar val=srcGray.at<uchar>(*it);
+        cout << (int)val << " ";
+        it++;
+    }
+    cout << endl;
+    return p;
 }
 
-void LineDecect::edgeKbLine(vector<Point> p, Mat srcImage, int edge_n, int template_size)
+void LineDecect::verticalFindLine(vector<Point> pv, int edge_n)
+// edge_n为每两个点之间采样几个点
+{
+    int p_num = pv.size(); // pv.size();
+    // for (int i = 0; i < p_num; i++)
+    // {
+    //     for (int j = i + 1; j < p_num; j++)
+    //     {
+    //         for (int l = 1; l < edge_n; l++)
+    //         {
+    //             Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
+    //             verticalPoint(p, pv[i], pv[j]);
+    //         }
+    //     }
+    // }
+    int i = 4;
+    int j = 3;
+    for (int l = 1; l < edge_n; l++)
+    {
+        Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
+        verticalPoint(p, pv[i], pv[j]);
+    }
+    namedWindow("line", 0);
+    imshow("line", srcImage);
+    waitKey(0);
+}
+
+void LineDecect::edgeFindLine(vector<Point> p, int edge_n, int template_size)
 // edge_n为每两个点之间采样几个点
 {
     // Canny 边缘检测
-    Mat dstImage, edge, grayImage;
+    Mat dstImage, edge;
     dstImage.create(srcImage.size(), srcImage.type());
-    cvtColor(srcImage, grayImage, COLOR_BGR2GRAY);
-    blur(grayImage, edge, Size(3, 3));
+
+    blur(srcGray, edge, Size(3, 3));
     Canny(edge, edge, 3, 9, 3);
 
     // imshow("Canny边缘检测", edge);
@@ -161,12 +221,12 @@ draw:
     waitKey(0);
 }
 
-Mat LineDecect::edgeDetect(Mat img)
+Mat LineDecect::edgeDetect()
 {
-    Mat dstImage, edge, grayImage;
-    dstImage.create(img.size(), img.type());
-    cvtColor(img, grayImage, COLOR_BGR2GRAY);
-    blur(grayImage, edge, Size(3, 3));
+    Mat dstImage, edge;
+    dstImage.create(srcImage.size(), srcImage.type());
+
+    blur(srcGray, edge, Size(3, 3));
     Canny(edge, edge, 3, 9, 3);
 
     imshow("Canny边缘检测", edge);
@@ -174,7 +234,7 @@ Mat LineDecect::edgeDetect(Mat img)
     return edge;
 }
 
-vector<Point> LineDecect::harrisCornorDetect(Mat srcImage, int abs_dist)
+vector<Point> LineDecect::harrisCornorDetect(int abs_dist)
 {
     // Harris corner parameters
     int kThresh = 150;
@@ -182,12 +242,9 @@ vector<Point> LineDecect::harrisCornorDetect(Mat srcImage, int abs_dist)
     int kApertureSize = 3;
     double k = 0.04;
 
-    Mat src_gray;
-    cvtColor(srcImage, src_gray, COLOR_BGR2GRAY);
-
     Mat dst, dst_norm, dst_norm_scaled;
     // Harris corner detect
-    cornerHarris(src_gray, dst, kBlockSize, kApertureSize, k);
+    cornerHarris(srcGray, dst, kBlockSize, kApertureSize, k);
 
     normalize(dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1);
     convertScaleAbs(dst_norm, dst_norm_scaled);
@@ -231,34 +288,6 @@ vector<Point> LineDecect::harrisCornorDetect(Mat srcImage, int abs_dist)
 
     cout << "find cornor: " << v.size() << endl;
 
-    // vector<Point> v_new;
-
-    // vector<Point>::iterator i = v.begin();
-    // vector<Point>::iterator j = v.begin();
-    // j++;
-    // n = 1;
-    // while (i != v.end())
-    // {
-    //     if ((j == v.end()) || (abs((*i).x - (*j).x) + abs((*i).y - (*j).y) >= 4))
-    //     {
-    //         Point p = Point(0, 0);
-    //         while ((*i) != (*j))
-    //         {
-    //             p = p + (*i);
-    //             i++;
-    //         }
-    //         p /= n;
-    //         v_new.push_back(p);
-
-    //         n = 1;
-    //     }
-    //     else
-    //     {
-    //         n++;
-    //     }
-    //     j++;
-    // }
-
     // cout << "final cornor: " << v_new.size() << endl;
     vector<Point> p;
     for (int i = 0; i < v.size(); i++)
@@ -266,13 +295,13 @@ vector<Point> LineDecect::harrisCornorDetect(Mat srcImage, int abs_dist)
         p.push_back(Point((int)v[i].first.first, (int)v[i].first.second));
     }
 
-    // vector<Point>::iterator it = p.begin();
-    // while (it != p.end())
-    // {
-    //     // cout << *it << endl;
-    //     circle(srcImage, *it, 5, Scalar(0, 0, 255));
-    //     it++;
-    // }
+    vector<Point>::iterator it = p.begin();
+    while (it != p.end())
+    {
+        // cout << *it << endl;
+        circle(srcImage, *it, 5, Scalar(0, 0, 255));
+        it++;
+    }
     // namedWindow("harris corner", 0);
     // imshow("harris corner", srcImage);
     // waitKey(0);
@@ -300,4 +329,10 @@ int LineDecect::downSample()
         imwrite(s1 + to_string(i) + "_1" + s2, src_down1);
     }
     return 1;
+}
+
+LineDecect::LineDecect(Mat srcImage)
+{
+    this->srcImage = srcImage;
+    cvtColor(srcImage, srcGray, COLOR_BGR2GRAY);
 }
