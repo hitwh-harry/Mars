@@ -17,21 +17,19 @@ class LineDecect
     Mat srcGray;
 
 public:
-
     LineDecect(Mat srcImage);
 
     Mat edgeDetect();
 
     void edgeFindLine(vector<Point> p, int edge_n, int template_size);
 
-    Point verticalPoint(Point p, Point p1, Point p2);
+    list<Point> verticalPoint(Point p, Point p1, Point p2, int dist);
 
-    void verticalFindLine(vector<Point> pv, int edge_n);
+    void verticalFindLine(vector<Point> pv, int edge_n, int dist);
 
     vector<Point> harrisCornorDetect(int abs_dist);
 
     int downSample();
-
 };
 
 #endif

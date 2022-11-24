@@ -1,7 +1,8 @@
 #include "LineDetect.h"
 
 //从p的垂直线查找梯度变化大的点
-Point LineDecect::verticalPoint(Point p, Point p1, Point p2)
+list<Point> LineDecect::verticalPoint(Point p, Point p1, Point p2, int dist)
+// p_find存找到的两个点
 {
     double k, b;
     if (p2.y != p1.y)
@@ -14,67 +15,93 @@ Point LineDecect::verticalPoint(Point p, Point p1, Point p2)
         k = srcImage.rows + 1; // k理论最大值
     }
 
-    list<Point> plist;
+    vector<Point> pv;
 
     if (k >= -1 && k <= 1)
     {
-        int x = p.x - 10;
+        int x = p.x - dist;
         if (x < 0)
             x = 0;
-        for (; x - p.x <= 10 && x < srcImage.cols; x++)
-            plist.push_back(Point(x, k * x + b));
+        for (; x - p.x <= dist && x < srcImage.cols; x++)
+            pv.push_back(Point(x, k * x + b));
     }
     else if (k == srcImage.rows + 1)
     {
-        int y = p.y - 10;
+        int y = p.y - dist;
         if (y < 0)
             y = 0;
-        for (; y - p.y <= 10 && y < srcImage.rows; y++)
-            plist.push_front(Point(p.x, y));
+        for (; y - p.y <= dist && y < srcImage.rows; y++)
+            pv.push_back(Point(p.x, y));
     }
     else
     {
-        int y = p.y - 10;
+        int y = p.y - dist;
         if (y < 0)
             y = 0;
-        for (; y - p.y <= 10 && y < srcImage.rows; y++)
-            plist.push_front(Point((y - b) / k, y));
+        for (; y - p.y <= dist && y < srcImage.rows; y++)
+            pv.push_back(Point((y - b) / k, y));
     }
 
-    list<Point>::iterator it = plist.begin();
-    while (it != plist.end())
+    int n = pv.size();
+    int pixel_value[n];
+
+    for (int i = 0; i < n; i++)
+        pixel_value[i] = (int)srcGray.at<uchar>(pv[i]);
+
+    // for (int i = 0; i < n; i++)
+    //     cout<<pixel_value[i]<<" ";
+    // cout<<endl;
+
+    list<Point> p_find;
+    for (int i = 0, j = 2; j < n; i++, j++)
     {
-        circle(srcImage, (*it), 2, Scalar(0, 0, 255));
-        uchar val=srcGray.at<uchar>(*it);
-        cout << (int)val << " ";
-        it++;
+        if (abs(pixel_value[i] - pixel_value[j]) > 100)
+            p_find.push_back(pv[i + 1]);
     }
-    cout << endl;
-    return p;
+    return p_find;
 }
 
-void LineDecect::verticalFindLine(vector<Point> pv, int edge_n)
+void LineDecect::verticalFindLine(vector<Point> pv, int edge_n, int dist)
 // edge_n为每两个点之间采样几个点
+// dist为垂线从多远开始
 {
-    int p_num = pv.size(); // pv.size();
+    // int p_num = pv.size();
     // for (int i = 0; i < p_num; i++)
     // {
     //     for (int j = i + 1; j < p_num; j++)
     //     {
+    //         vector<Point> p_edge; //收集待拟合点
+    //         vector<Point> p_edge1;
     //         for (int l = 1; l < edge_n; l++)
     //         {
+    //             Point p_temp[2];
     //             Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
-    //             verticalPoint(p, pv[i], pv[j]);
+    //             list<Point>p_temp=verticalPoint(p, pv[i], pv[j], dist);
+    //             if (p_temp.size() == 2)
+    //             {
+    //                 p_edge.push_back(p_temp[0]);
+    //                 p_edge1.push_back(p_temp[1]);
+    //             }
+    //         }
+
+    //         if (p_edge.size() >= 0.2 * edge_n)
+    //         {
+    //             for(int l=0;l<p_edge.size();l++)
+    //                 circle(srcImage, p_edge1[l], 3, Scalar(0, 0, 255));
     //         }
     //     }
     // }
-    int i = 4;
-    int j = 3;
+
+    int i = 1;
+    int j = 2;
     for (int l = 1; l < edge_n; l++)
     {
         Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
-        verticalPoint(p, pv[i], pv[j]);
+        list<Point> p_temp = verticalPoint(p, pv[i], pv[j], dist);
+        circle(srcImage, p_temp.front(), 3, Scalar(0, 0, 255));
+        circle(srcImage, p_temp.back(), 3, Scalar(0, 0, 255));
     }
+
     namedWindow("line", 0);
     imshow("line", srcImage);
     waitKey(0);

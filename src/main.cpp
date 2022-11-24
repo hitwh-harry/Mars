@@ -25,6 +25,6 @@ int main()
 
 	//垂线法
 	vector<Point> pv = ld.harrisCornorDetect(20);
-	ld.verticalFindLine(pv, 5);
+	ld.verticalFindLine(pv, 10, 10);
 	
 }
