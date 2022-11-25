@@ -1,9 +1,10 @@
 #include "LineDetect.h"
 
 //从p的垂直线查找梯度变化大的点
-list<Point> LineDecect::verticalPoint(Point p, Point p1, Point p2, int dist)
+void LineDecect::verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2, int dist)
 // p_find存找到的两个点
 {
+    //找垂线
     double k, b;
     if (p2.y != p1.y)
     {
@@ -15,7 +16,7 @@ list<Point> LineDecect::verticalPoint(Point p, Point p1, Point p2, int dist)
         k = srcImage.rows + 1; // k理论最大值
     }
 
-    vector<Point> pv;
+    vector<Point> pv; //存垂线上的点
 
     if (k >= -1 && k <= 1)
     {
@@ -43,7 +44,7 @@ list<Point> LineDecect::verticalPoint(Point p, Point p1, Point p2, int dist)
     }
 
     int n = pv.size();
-    int pixel_value[n];
+    int pixel_value[n]; //垂线上的像素值
 
     for (int i = 0; i < n; i++)
         pixel_value[i] = (int)srcGray.at<uchar>(pv[i]);
@@ -52,55 +53,60 @@ list<Point> LineDecect::verticalPoint(Point p, Point p1, Point p2, int dist)
     //     cout<<pixel_value[i]<<" ";
     // cout<<endl;
 
-    list<Point> p_find;
     for (int i = 0, j = 2; j < n; i++, j++)
     {
         if (abs(pixel_value[i] - pixel_value[j]) > 100)
-            p_find.push_back(pv[i + 1]);
+            p_temp.push_back(pv[i + 1]);
     }
-    return p_find;
 }
 
 void LineDecect::verticalFindLine(vector<Point> pv, int edge_n, int dist)
 // edge_n为每两个点之间采样几个点
 // dist为垂线从多远开始
 {
-    // int p_num = pv.size();
-    // for (int i = 0; i < p_num; i++)
-    // {
-    //     for (int j = i + 1; j < p_num; j++)
-    //     {
-    //         vector<Point> p_edge; //收集待拟合点
-    //         vector<Point> p_edge1;
-    //         for (int l = 1; l < edge_n; l++)
-    //         {
-    //             Point p_temp[2];
-    //             Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
-    //             list<Point>p_temp=verticalPoint(p, pv[i], pv[j], dist);
-    //             if (p_temp.size() == 2)
-    //             {
-    //                 p_edge.push_back(p_temp[0]);
-    //                 p_edge1.push_back(p_temp[1]);
-    //             }
-    //         }
-
-    //         if (p_edge.size() >= 0.2 * edge_n)
-    //         {
-    //             for(int l=0;l<p_edge.size();l++)
-    //                 circle(srcImage, p_edge1[l], 3, Scalar(0, 0, 255));
-    //         }
-    //     }
-    // }
-
-    int i = 1;
-    int j = 2;
-    for (int l = 1; l < edge_n; l++)
+    int p_num = pv.size();
+    for (int i = 0; i < p_num; i++)
     {
-        Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
-        list<Point> p_temp = verticalPoint(p, pv[i], pv[j], dist);
-        circle(srcImage, p_temp.front(), 3, Scalar(0, 0, 255));
-        circle(srcImage, p_temp.back(), 3, Scalar(0, 0, 255));
+        for (int j = i + 1; j < p_num; j++)
+        {
+            vector<Point> p_edge; //收集待拟合点
+            vector<Point> p_edge1;
+            for (int l = 1; l < edge_n; l++)
+            {
+                Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
+                list<Point> p_temp;
+                verticalPoint(p_temp, p, pv[i], pv[j], dist);
+
+                if (p_temp.size() >= 2)
+                {
+                    p_edge.push_back(p_temp.front());
+                    p_edge1.push_back(p_temp.back());
+                }
+            }
+
+            if (p_edge.size() >= 0.8 * edge_n)
+            {
+                for (int l = 0; l < p_edge.size(); l++)
+                {
+                    circle(srcImage, p_edge[l], 3, Scalar(0, 0, 255));
+                    circle(srcImage, p_edge1[l], 3, Scalar(0, 0, 255));
+                }
+            }
+        }
     }
+
+    // int i = 4;
+    // int j = 3;
+    // for (int l = 1; l < edge_n; l++)
+    // {
+    //     Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
+
+    //     list<Point> p_temp;
+    //     verticalPoint(p_temp, p, pv[i], pv[j], dist);
+
+    //     circle(srcImage, p_temp.front(), 3, Scalar(0, 0, 255));
+    //     circle(srcImage, p_temp.back(), 3, Scalar(0, 0, 255));
+    // }
 
     namedWindow("line", 0);
     imshow("line", srcImage);
@@ -261,7 +267,7 @@ Mat LineDecect::edgeDetect()
     return edge;
 }
 
-vector<Point> LineDecect::harrisCornorDetect(int abs_dist)
+void LineDecect::harrisCornorDetect(vector<Point> &p, int abs_dist)
 {
     // Harris corner parameters
     int kThresh = 150;
@@ -316,24 +322,22 @@ vector<Point> LineDecect::harrisCornorDetect(int abs_dist)
     cout << "find cornor: " << v.size() << endl;
 
     // cout << "final cornor: " << v_new.size() << endl;
-    vector<Point> p;
+
     for (int i = 0; i < v.size(); i++)
     {
         p.push_back(Point((int)v[i].first.first, (int)v[i].first.second));
     }
 
-    vector<Point>::iterator it = p.begin();
-    while (it != p.end())
-    {
-        // cout << *it << endl;
-        circle(srcImage, *it, 5, Scalar(0, 0, 255));
-        it++;
-    }
+    // vector<Point>::iterator it = p.begin();
+    // while (it != p.end())
+    // {
+    //     // cout << *it << endl;
+    //     circle(srcImage, *it, 5, Scalar(0, 0, 255));
+    //     it++;
+    // }
     // namedWindow("harris corner", 0);
     // imshow("harris corner", srcImage);
     // waitKey(0);
-
-    return p;
 }
 
 int LineDecect::downSample()
