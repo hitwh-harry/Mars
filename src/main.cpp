@@ -18,13 +18,15 @@ int main()
 
 	LineDecect ld(img);
 
+	vector<Point> pv;
+	
 	//边缘检测法
-	// vector<Point> pv = ld.harrisCornorDetect(3);
+	// ld.harrisCornorDetect(pv, 3);
 	// ld.edgeFindLine(pv, 10, 5);
 	// ld.edgeDetect();
 
 	//垂线法
-	vector<Point> pv = ld.harrisCornorDetect(20);
+	ld.harrisCornorDetect(pv, 20);
 	ld.verticalFindLine(pv, 10, 10);
 	
 }

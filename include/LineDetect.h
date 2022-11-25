@@ -23,11 +23,11 @@ public:
 
     void edgeFindLine(vector<Point> p, int edge_n, int template_size);
 
-    list<Point> verticalPoint(Point p, Point p1, Point p2, int dist);
+    void verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2, int dist);
 
     void verticalFindLine(vector<Point> pv, int edge_n, int dist);
 
-    vector<Point> harrisCornorDetect(int abs_dist);
+    void harrisCornorDetect(vector<Point> &p, int abs_dist);
 
     int downSample();
 };
