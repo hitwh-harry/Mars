@@ -14,7 +14,13 @@ using namespace cv;
 class LineDecect
 {
     Mat srcImage;
+
     Mat srcGray;
+
+    void verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2, int dist);
+
+    pair<double, double> leastSquare(vector<Point> p_edge); //最小二乘法
+
 
 public:
     LineDecect(Mat srcImage);
@@ -22,8 +28,6 @@ public:
     Mat edgeDetect();
 
     void edgeFindLine(vector<Point> p, int edge_n, int template_size);
-
-    void verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2, int dist);
 
     void verticalFindLine(vector<Point> pv, int edge_n, int dist);
 

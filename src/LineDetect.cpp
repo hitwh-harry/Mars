@@ -13,7 +13,7 @@ void LineDecect::verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2,
     }
     else
     {
-        k = srcImage.rows + 1; // k理论最大值
+        k = DBL_MAX;
     }
 
     vector<Point> pv; //存垂线上的点
@@ -26,7 +26,7 @@ void LineDecect::verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2,
         for (; x - p.x <= dist && x < srcImage.cols; x++)
             pv.push_back(Point(x, k * x + b));
     }
-    else if (k == srcImage.rows + 1)
+    else if (k == DBL_MAX)
     {
         int y = p.y - dist;
         if (y < 0)
@@ -64,49 +64,65 @@ void LineDecect::verticalFindLine(vector<Point> pv, int edge_n, int dist)
 // edge_n为每两个点之间采样几个点
 // dist为垂线从多远开始
 {
+    list<pair<double, double>> line_kb; //储存检测到的直线的k和b
     int p_num = pv.size();
-    for (int i = 0; i < p_num; i++)
-    {
-        for (int j = i + 1; j < p_num; j++)
-        {
-            vector<Point> p_edge; //收集待拟合点
-            vector<Point> p_edge1;
-            for (int l = 1; l < edge_n; l++)
-            {
-                Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
-                list<Point> p_temp;
-                verticalPoint(p_temp, p, pv[i], pv[j], dist);
-
-                if (p_temp.size() >= 2)
-                {
-                    p_edge.push_back(p_temp.front());
-                    p_edge1.push_back(p_temp.back());
-                }
-            }
-
-            if (p_edge.size() >= 0.8 * edge_n)
-            {
-                for (int l = 0; l < p_edge.size(); l++)
-                {
-                    circle(srcImage, p_edge[l], 3, Scalar(0, 0, 255));
-                    circle(srcImage, p_edge1[l], 3, Scalar(0, 0, 255));
-                }
-            }
-        }
-    }
-
-    // int i = 4;
-    // int j = 3;
-    // for (int l = 1; l < edge_n; l++)
+    // for (int i = 0; i < p_num; i++)
     // {
-    //     Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
+    //     for (int j = i + 1; j < p_num; j++)
+    //     {
+    //         vector<Point> p_edge; //收集待拟合点
+    //         vector<Point> p_edge1;
+    //         for (int l = 1; l < edge_n; l++)
+    //         {
+    //             Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
+    //             list<Point> p_temp;
+    //             verticalPoint(p_temp, p, pv[i], pv[j], dist);
 
-    //     list<Point> p_temp;
-    //     verticalPoint(p_temp, p, pv[i], pv[j], dist);
+    //             if (p_temp.size() >= 2)
+    //             {
+    //                 p_edge.push_back(p_temp.front());
+    //                 p_edge1.push_back(p_temp.back());
+    //             }
+    //         }
 
-    //     circle(srcImage, p_temp.front(), 3, Scalar(0, 0, 255));
-    //     circle(srcImage, p_temp.back(), 3, Scalar(0, 0, 255));
+    //         if (p_edge.size() >= 0.8 * edge_n)
+    //         {
+    //             line_kb.push_back(leastSquare(p_edge));
+    //             line_kb.push_back(leastSquare(p_edge1));
+    //             for (int l = 0; l < p_edge.size(); l++)
+    //             {
+    //                 circle(srcImage, p_edge[l], 3, Scalar(0, 0, 255));
+    //                 circle(srcImage, p_edge1[l], 3, Scalar(0, 0, 255));
+    //             }
+    //         }
+    //     }
     // }
+
+    // list<pair<double, double>>::iterator it = line_kb.begin();
+    // while (it != line_kb.end())
+    // {
+    //     if ((*it).first != DBL_MAX)
+    //         line(srcImage, Point(0, (*it).second), Point(1022, 1022 * (*it).first + (*it).second), Scalar(0, 0, 255));
+    //     else
+    //         line(srcImage, Point((*it).second, 0), Point((*it).second, 1022), Scalar(0, 0, 255));
+
+    //     it++;
+    // }
+
+    int i = 1;
+    int j = 3;
+    vector<Point> p_edge;
+    for (int l = 1; l < edge_n; l++)
+    {
+        Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
+
+        list<Point> p_temp;
+        verticalPoint(p_temp, p, pv[i], pv[j], dist);
+        cout<<p_temp.size();
+        p_edge.push_back(p_temp.front());
+        circle(srcImage, p_temp.front(), 3, Scalar(0, 0, 255));
+        // circle(srcImage, p_temp.back(), 3, Scalar(0, 0, 255));
+    }
 
     namedWindow("line", 0);
     imshow("line", srcImage);
@@ -162,19 +178,7 @@ void LineDecect::edgeFindLine(vector<Point> p, int edge_n, int template_size)
             {
 
                 line_num++;
-                int t1, t2, t3, t4;
-                t1 = t2 = t3 = t4 = 0;
-                int n = p_edge.size();
-                for (int k = 0; k < n; k++)
-                {
-                    t1 += p_edge[k].x;
-                    t2 += p_edge[k].y;
-                    t3 += (p_edge[k].x * p_edge[k].y);
-                    t4 += pow(p_edge[k].x, 2);
-                }
-                double k = (double)(n * t3 - t1 * t2) / (n * t4 - t1 * t1);
-                double b = (double)(t4 * t2 - t1 * t3) / (n * t4 - t1 * t1);
-                line_kb.push_back({k, b});
+                line_kb.push_back(leastSquare(p_edge));
 
                 // cout << k <<" "<< b << endl << endl;
                 // line(srcImage, Point(0, b), Point(1022, 1022 * k + b), Scalar(0, 0, 255));
@@ -233,11 +237,11 @@ void LineDecect::edgeFindLine(vector<Point> p, int edge_n, int template_size)
         line(srcImage, Point(0, (*m_i).second), Point(1022, 1022 * (*m_i).first + (*m_i).second), Scalar(0, 0, 255));
         line(srcImage, Point(0, (*m_j).second), Point(1022, 1022 * (*m_j).first + (*m_j).second), Scalar(0, 0, 255));
 
-        for (i = line_kb.begin(); i != line_kb.end(); i++)
-        {
-            cout << (*i).first << " " << (*i).second << endl;
-        }
-        cout << endl;
+        // for (i = line_kb.begin(); i != line_kb.end(); i++)
+        // {
+        //     cout << (*i).first << " " << (*i).second << endl;
+        // }
+        // cout << endl;
 
         line_kb.erase(m_i);
         line_kb.erase(m_j);
@@ -252,6 +256,35 @@ draw:
     namedWindow("line", 0);
     imshow("line", srcImage);
     waitKey(0);
+}
+
+pair<double, double> LineDecect::leastSquare(vector<Point> p_edge)
+{
+    int t1, t2, t3, t4;
+    t1 = t2 = t3 = t4 = 0;
+    int n = p_edge.size();
+    for (int i = 0; i < n; i++)
+    {
+        t1 += p_edge[i].x;
+        t2 += p_edge[i].y;
+        t3 += (p_edge[i].x * p_edge[i].y);
+        t4 += pow(p_edge[i].x, 2);
+    }
+
+    double k, b;
+    // k为无穷时b存x的值
+    if (n * t4 == t1 * t1)
+    {
+        k = DBL_MAX;
+        b = p_edge[0].x;
+    }
+    else
+    {
+        k = (double)(n * t3 - t1 * t2) / (n * t4 - t1 * t1);
+        b = (double)(t4 * t2 - t1 * t3) / (n * t4 - t1 * t1);
+    }
+
+    return {k, b};
 }
 
 Mat LineDecect::edgeDetect()
