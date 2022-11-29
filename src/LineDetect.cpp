@@ -1,7 +1,7 @@
-#include "LineDetect.h"
+#include "../include/LineDetect.h"
 
 //从p的垂直线查找梯度变化大的点
-void LineDecect::verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2, int dist)
+void LineDecect::verticalPoint(list<Point> &p_result, Point p, Point p1, Point p2, int dist)
 // p_find存找到的两个点
 {
     //找垂线
@@ -53,10 +53,29 @@ void LineDecect::verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2,
     //     cout<<pixel_value[i]<<" ";
     // cout<<endl;
 
+    // p_result.push_back(pv[i + 1]);
+    int start = 0, now = -1;
+    Point p_temp = Point(0, 0);
     for (int i = 0, j = 2; j < n; i++, j++)
     {
         if (abs(pixel_value[i] - pixel_value[j]) > 100)
-            p_temp.push_back(pv[i + 1]);
+        {
+            // cout<<pv[i + 1]<<endl;
+            p_temp += pv[i + 1];
+            if (start == 0)
+            {
+                start = i + 1;
+                now = i + 1;
+            }
+            else if (i == now)
+                now++;
+        }
+        else if (i == now && abs(pixel_value[i] - pixel_value[j]) <= 100)
+        {
+            p_temp /= (now - start + 1);
+            p_result.push_back(p_temp);
+            start = 0;
+        }
     }
 }
 
@@ -118,7 +137,7 @@ void LineDecect::verticalFindLine(vector<Point> pv, int edge_n, int dist)
 
         list<Point> p_temp;
         verticalPoint(p_temp, p, pv[i], pv[j], dist);
-        cout<<p_temp.size();
+        cout << p_temp.back();
         p_edge.push_back(p_temp.front());
         circle(srcImage, p_temp.front(), 3, Scalar(0, 0, 255));
         // circle(srcImage, p_temp.back(), 3, Scalar(0, 0, 255));

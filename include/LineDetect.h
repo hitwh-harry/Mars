@@ -17,7 +17,7 @@ class LineDecect
 
     Mat srcGray;
 
-    void verticalPoint(list<Point> &p_temp, Point p, Point p1, Point p2, int dist);
+    void verticalPoint(list<Point> &p_result, Point p, Point p1, Point p2, int dist);
 
     pair<double, double> leastSquare(vector<Point> p_edge); //最小二乘法
 
