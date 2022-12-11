@@ -1,20 +1,27 @@
 #ifndef LINEDETECT_H
 #define LINEDETECT_H
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
 #include "opencv2/highgui.hpp"
 #include "opencv2/imgproc.hpp"
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/eigen.hpp>
+
 #include <iostream>
 #include <vector>
 #include <list>
 #include <utility>
 
+
+using namespace Eigen;
 using namespace std;
 using namespace cv;
 
 class LineDecect
 {
     Mat srcImage;
-
     Mat srcGray;
 
     void verticalPoint(list<Point> &p_result, Point p, Point p1, Point p2, int dist);

@@ -322,8 +322,8 @@ Mat LineDecect::edgeDetect()
 void LineDecect::harrisCornorDetect(vector<Point> &p, int abs_dist)
 {
     // Harris corner parameters
-    int kThresh = 150;
-    int kBlockSize = 3;
+    int kThresh = 160;
+    int kBlockSize = 5;
     int kApertureSize = 3;
     double k = 0.04;
 
@@ -383,8 +383,8 @@ void LineDecect::harrisCornorDetect(vector<Point> &p, int abs_dist)
     // vector<Point>::iterator it = p.begin();
     // while (it != p.end())
     // {
-    //     // cout << *it << endl;
-    //     circle(srcImage, *it, 5, Scalar(0, 0, 255));
+    //     cout << *it << endl;
+    //     circle(srcImage, *it, 10, Scalar(0, 0, 255), 3);
     //     it++;
     // }
     // namedWindow("harris corner", 0);

@@ -7,7 +7,7 @@ set(CMAKE_BUILD_TYPE "Debug")
 set(CMAKE_CXX_FLAGS "-std=c++11 -O2")
 
 # Eigen
-# include_directories(/usr/include/eigen3)
+include_directories(/usr/include/eigen3)
 
 include_directories(include)
 aux_source_directory(src SRC)

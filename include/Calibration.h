@@ -16,7 +16,7 @@ using namespace std;
 
 class Calibration {
 public:
-    static void Calibrate();
+    static void calibrate();
 };
 
 #endif 
