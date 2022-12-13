@@ -3,10 +3,12 @@
 #ifndef LOCATE_H
 #define LOCATE_H
 
-#include "LineDetect.h"
+#include "Util.h"
+#include <Eigen/Core>
+#include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
 
-using namespace cv;
-using namespace std;
+using namespace Eigen;
 
 class Locate
 {

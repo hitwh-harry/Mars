@@ -1,4 +1,4 @@
-#include "../include/LineDetect.h"
+#include "LineDetect.h"
 
 //从p的垂直线查找梯度变化大的点
 void LineDecect::verticalPoint(list<Point> &p_result, Point p, Point p1, Point p2, int dist)
@@ -322,7 +322,7 @@ Mat LineDecect::edgeDetect()
 void LineDecect::harrisCornorDetect(vector<Point> &p, int abs_dist)
 {
     // Harris corner parameters
-    int kThresh = 160;
+    int kThresh = 170;
     int kBlockSize = 5;
     int kApertureSize = 3;
     double k = 0.04;
@@ -380,38 +380,16 @@ void LineDecect::harrisCornorDetect(vector<Point> &p, int abs_dist)
         p.push_back(Point((int)v[i].first.first, (int)v[i].first.second));
     }
 
-    // vector<Point>::iterator it = p.begin();
-    // while (it != p.end())
-    // {
-    //     cout << *it << endl;
-    //     circle(srcImage, *it, 10, Scalar(0, 0, 255), 3);
-    //     it++;
-    // }
-    // namedWindow("harris corner", 0);
-    // imshow("harris corner", srcImage);
-    // waitKey(0);
-}
-
-int LineDecect::downSample()
-{
-    String s1 = "../pictures/";
-    String s2 = ".jpg";
-    for (int i = 1; i < 9; i++)
+    vector<Point>::iterator it = p.begin();
+    while (it != p.end())
     {
-        Mat src, src_down, src_down1;
-        src = imread(s1 + to_string(i) + s2);
-        if (src.empty())
-        {
-            cout << "image not found" << endl;
-            return -1;
-        }
-
-        pyrDown(src, src_down, Size(src.cols / 2, src.rows / 2));
-        pyrDown(src_down, src_down1, Size(src_down.cols / 2, src_down.rows / 2));
-
-        imwrite(s1 + to_string(i) + "_1" + s2, src_down1);
+        cout << *it << endl;
+        circle(srcImage, *it, 20, Scalar(255, 0, 255), 3);
+        it++;
     }
-    return 1;
+    namedWindow("harris corner", 0);
+    imshow("harris corner", srcImage);
+    waitKey(0);
 }
 
 LineDecect::LineDecect(Mat srcImage)

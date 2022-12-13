@@ -1,11 +1,46 @@
+#include "Util.h"
 
-#include "Calibration.h"
-#include "string.h"
-
-void Calibration::calibrate()
+void Util::downSample()
 {
-	ifstream fin("../pictures/calibdata.txt");			  /* 标定所用图像文件的路径 */
-	ofstream fout("../pictures/caliberation_result.txt"); /* 保存标定结果的文件 */
+	Mat srcImage, newImage;
+	String s1 = "../pictures/";
+	String s2 = ".jpg";
+	for (int i = 1; i < 14; i++)
+	{
+		Mat newImage;
+
+		srcImage = imread(s1 + to_string(i) + s2);
+		if (srcImage.empty())
+		{
+			cout << "image not found" << endl;
+			return;
+		}
+		resize(srcImage, newImage, Size(640, 480), 0, 0, INTER_AREA);
+		// cout << srcImage.rows << srcImage.cols << endl;
+		// cout << newImage.rows << newImage.cols << endl;
+
+		// pyrDown(src, src_down, Size(src.cols / 2, src.rows / 2));
+		// pyrDown(src_down, src_down1, Size(src_down.cols / 2, src_down.rows / 2));
+
+		imwrite(s1 + to_string(i) + "_1" + s2, newImage);
+	}
+
+	// Mat newImage(480,640,CV_8UC3);
+	// for(double i=0;i<480;i++){
+	// 	for(double j=0;j<640;j++)
+	// 	{
+	// 		cv::Vec3b vc3 = srcImage.at<cv::Vec3b>((int)i*6.4, (int)j*6.4);
+	// 		newImage.at<Vec3b>((int)i, (int)j)[0]=vc3.val[0];
+	// 		newImage.at<Vec3b>((int)i, (int)j)[1]=vc3.val[1];
+	// 		newImage.at<Vec3b>((int)i, (int)j)[2]=vc3.val[2];
+	// 	}
+	// }
+}
+
+void Util::calibrate()
+{
+	ifstream fin("../pictures/calibdata.txt");	 /* 标定所用图像文件的路径 */
+	ofstream fout("../caliberation_result.txt"); /* 保存标定结果的文件 */
 	// 读取每一幅图像，从中提取出角点，然后对角点进行亚像素精确化
 	cout << "开始提取角点………………";
 	int image_count = 0;					  /* 图像数量 */
@@ -46,11 +81,11 @@ void Calibration::calibrate()
 			image_points_seq.push_back(image_points_buf);					  // 保存亚像素角点
 			/* 在图像上显示角点位置 */
 			drawChessboardCorners(view_gray, board_size, image_points_buf, true); // 用于在图片中标记角点
-			// imshow("Camera Calibration", view_gray);//显示图片
-			// waitKey(500);//暂停0.5S
-			// namedWindow("Camera Calibration", 0);
-			// imshow("Camera Calibration", view_gray);
-			// waitKey(0);
+																				  // imshow("Camera Calibration", view_gray);//显示图片
+																				  // waitKey(500);//暂停0.5S
+																				  // namedWindow("Camera Calibration", 0);
+																				  // imshow("Camera Calibration", view_gray);
+																				  // waitKey(0);
 		}
 	}
 	int total = image_points_seq.size();
@@ -171,6 +206,6 @@ void Calibration::calibrate()
 	}
 	std::cout << "完成保存" << endl;
 	fout << endl;
-	system("pause");
+	// system("pause");
 	return;
 }

@@ -2,18 +2,33 @@
 
 Locate::Locate()
 {
-    image_p.push_back(Point2f(2120, 885));
-    image_p.push_back(Point2f(2077, 1890));
-    image_p.push_back(Point2f(3107, 2042));
-    image_p.push_back(Point2f(2262, 1056));
+    // image_p.push_back(Point2f(245, 336));
+    // image_p.push_back(Point2f(241, 175));
+    // image_p.push_back(Point2f(398, 173));
+    // image_p.push_back(Point2f(405, 329));
 
-    target_p.push_back(Point3f(-64, 64.5, 0));
-    target_p.push_back(Point3f(-64, -64.5, 0));
-    target_p.push_back(Point3f(64, -64.5, 0));
-    target_p.push_back(Point3f(-44.4, 44.5, 0));
+    image_p.push_back(Point2f(254, 412));
+    image_p.push_back(Point2f(257, 254));
+    image_p.push_back(Point2f(405, 255));
+    image_p.push_back(Point2f(417, 409));
 
-    camera_matrix = (cv::Mat_<double>(3, 3) << 3177.99, 0, 2053.74, 0, 3175.55, 1531.91, 0, 0, 1);
-    dist_coeffs = (cv::Mat_<double>(5, 1) << 0.12, -0.44, -0.004, 0.002, -0.05);
+    // image_p.push_back(Point2f(273, 347));
+    // image_p.push_back(Point(274, 198));
+    // image_p.push_back(Point2f(420, 198));
+    // image_p.push_back(Point2f(434, 344));
+
+    // image_p.push_back(Point2f(274, 353));
+    // image_p.push_back(Point(280, 216));
+    // image_p.push_back(Point2f(418, 220));
+    // image_p.push_back(Point2f(434, 356));
+
+    target_p.push_back(Point3f(-66, -66.5, 0));
+    target_p.push_back(Point3f(-66, 66.5, 0));
+    target_p.push_back(Point3f(66, 66.5, 0));
+    target_p.push_back(Point3f(66, -66.5, 0));
+
+    camera_matrix = (cv::Mat_<double>(3, 3) << 496.81, 0, 319.77, 0, 496.93, 235.55, 0, 0, 1);
+    dist_coeffs = (cv::Mat_<double>(5, 1) << 0.1, -0.31, -0.008, -0.001, -1.248);
 }
 
 // 计算对应点的相机坐标
