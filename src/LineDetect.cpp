@@ -1,328 +1,63 @@
 #include "LineDetect.h"
 
-//从p的垂直线查找梯度变化大的点
-void LineDecect::verticalPoint(list<Point> &p_result, Point p, Point p1, Point p2, int dist)
-// p_find存找到的两个点
+void LineDecect::houghDetect()
 {
-    //找垂线
-    double k, b;
-    if (p2.y != p1.y)
+    Mat image_gray, dst;
+    Canny(targetImg, image_gray, 130, 200); // 100,200分别是低阈值和高阈值输出二值图
+    // namedWindow("img", 0);
+    // imshow("img", image_gray);
+    // waitKey(0);
+    // cvtColor(image_gray, dst, COLOR_GRAY2BGR);
+
+    vector<Vec4f> plines;                                          // 吧每个像素点的平面坐标转化为极坐标产生的曲线放入集合中
+    HoughLinesP(image_gray, plines, 1, CV_PI / 180.0, 20, 0, 40); // 从平面坐标转换到霍夫空间,最终输出的是直线的两个点（x0,y0,x1,y1）
+
+    cout << "line num: " << plines.size() << endl;
+    for (size_t i = 0; i < plines.size(); i++)
     {
-        k = (double)(p1.x - p2.x) / (p2.y - p1.y); //垂直线的斜率-1 / k
-        b = p.y - k * p.x;
+        Vec4f hline = plines[0];
+        line(targetImg, Point(hline[0], hline[1]), Point(hline[2], hline[3]), Scalar(0, 0, 255), 1);
     }
-    else
-    {
-        k = DBL_MAX;
-    }
-
-    vector<Point> pv; //存垂线上的点
-
-    if (k >= -1 && k <= 1)
-    {
-        int x = p.x - dist;
-        if (x < 0)
-            x = 0;
-        for (; x - p.x <= dist && x < srcImage.cols; x++)
-            pv.push_back(Point(x, k * x + b));
-    }
-    else if (k == DBL_MAX)
-    {
-        int y = p.y - dist;
-        if (y < 0)
-            y = 0;
-        for (; y - p.y <= dist && y < srcImage.rows; y++)
-            pv.push_back(Point(p.x, y));
-    }
-    else
-    {
-        int y = p.y - dist;
-        if (y < 0)
-            y = 0;
-        for (; y - p.y <= dist && y < srcImage.rows; y++)
-            pv.push_back(Point((y - b) / k, y));
-    }
-
-    int n = pv.size();
-    int pixel_value[n]; //垂线上的像素值
-
-    for (int i = 0; i < n; i++)
-        pixel_value[i] = (int)srcGray.at<uchar>(pv[i]);
-
-    // for (int i = 0; i < n; i++)
-    //     cout<<pixel_value[i]<<" ";
-    // cout<<endl;
-
-    // p_result.push_back(pv[i + 1]);
-    int start = 0, now = -1;
-    Point p_temp = Point(0, 0);
-    for (int i = 0, j = 2; j < n; i++, j++)
-    {
-        if (abs(pixel_value[i] - pixel_value[j]) > 100)
-        {
-            // cout<<pv[i + 1]<<endl;
-            p_temp += pv[i + 1];
-            if (start == 0)
-            {
-                start = i + 1;
-                now = i + 1;
-            }
-            else if (i == now)
-                now++;
-        }
-        else if (i == now && abs(pixel_value[i] - pixel_value[j]) <= 100)
-        {
-            p_temp /= (now - start + 1);
-            p_result.push_back(p_temp);
-            start = 0;
-        }
-    }
-}
-
-void LineDecect::verticalFindLine(vector<Point> pv, int edge_n, int dist)
-// edge_n为每两个点之间采样几个点
-// dist为垂线从多远开始
-{
-    list<pair<double, double>> line_kb; //储存检测到的直线的k和b
-    int p_num = pv.size();
-    // for (int i = 0; i < p_num; i++)
-    // {
-    //     for (int j = i + 1; j < p_num; j++)
-    //     {
-    //         vector<Point> p_edge; //收集待拟合点
-    //         vector<Point> p_edge1;
-    //         for (int l = 1; l < edge_n; l++)
-    //         {
-    //             Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
-    //             list<Point> p_temp;
-    //             verticalPoint(p_temp, p, pv[i], pv[j], dist);
-
-    //             if (p_temp.size() >= 2)
-    //             {
-    //                 p_edge.push_back(p_temp.front());
-    //                 p_edge1.push_back(p_temp.back());
-    //             }
-    //         }
-
-    //         if (p_edge.size() >= 0.8 * edge_n)
-    //         {
-    //             line_kb.push_back(leastSquare(p_edge));
-    //             line_kb.push_back(leastSquare(p_edge1));
-    //             for (int l = 0; l < p_edge.size(); l++)
-    //             {
-    //                 circle(srcImage, p_edge[l], 3, Scalar(0, 0, 255));
-    //                 circle(srcImage, p_edge1[l], 3, Scalar(0, 0, 255));
-    //             }
-    //         }
-    //     }
-    // }
-
-    // list<pair<double, double>>::iterator it = line_kb.begin();
-    // while (it != line_kb.end())
-    // {
-    //     if ((*it).first != DBL_MAX)
-    //         line(srcImage, Point(0, (*it).second), Point(1022, 1022 * (*it).first + (*it).second), Scalar(0, 0, 255));
-    //     else
-    //         line(srcImage, Point((*it).second, 0), Point((*it).second, 1022), Scalar(0, 0, 255));
-
-    //     it++;
-    // }
-
-    int i = 1;
-    int j = 3;
-    vector<Point> p_edge;
-    for (int l = 1; l < edge_n; l++)
-    {
-        Point p = pv[i] + (double)l / edge_n * (pv[j] - pv[i]);
-
-        list<Point> p_temp;
-        verticalPoint(p_temp, p, pv[i], pv[j], dist);
-        cout << p_temp.back();
-        p_edge.push_back(p_temp.front());
-        circle(srcImage, p_temp.front(), 3, Scalar(0, 0, 255));
-        // circle(srcImage, p_temp.back(), 3, Scalar(0, 0, 255));
-    }
-
-    namedWindow("line", 0);
-    imshow("line", srcImage);
+    namedWindow("hough", 0);
+    imshow("hough", targetImg);
     waitKey(0);
 }
 
-void LineDecect::edgeFindLine(vector<Point> p, int edge_n, int template_size)
-// edge_n为每两个点之间采样几个点
+void LineDecect::templateMatch(Mat temp)
 {
-    // Canny 边缘检测
-    Mat dstImage, edge;
-    dstImage.create(srcImage.size(), srcImage.type());
+    Mat result;
 
-    blur(srcGray, edge, Size(3, 3));
-    Canny(edge, edge, 3, 9, 3);
+    matchTemplate(srcImage, temp, result, TM_CCOEFF);
+    normalize(result, result, 0, 1, NORM_MINMAX, -1); // 归一化到0-1范围
+    double minValue, maxValue;
+    Point minLoc, maxLoc;
 
-    // imshow("Canny边缘检测", edge);
+    minMaxLoc(result, &minValue, &maxValue, &minLoc, &maxLoc);
+
+    // 裁剪复制，取中间元素填充边缘
+    cv::Vec3b pixel = srcImage.at<cv::Vec3b>(maxLoc.y + temp.cols / 2, maxLoc.x + temp.rows / 2);
+    
+    cv::Rect area(maxLoc.x, maxLoc.y, temp.cols, temp.rows); // 裁剪区域的矩形表示
+    cv::Mat roi = srcImage(area);
+
+    cv::Mat frame_tape = cv::Mat::zeros(srcImage.rows, srcImage.cols, CV_8UC3);
+    frame_tape.setTo(cv::Scalar(pixel[0], pixel[1], pixel[2]));
+
+    cv::Rect roi_rect = cv::Rect(maxLoc.x, maxLoc.y, temp.cols, temp.rows);
+    roi.copyTo(frame_tape(roi_rect));
+
+    // rectangle(srcImage, maxLoc, Point(maxLoc.x + temp.cols, maxLoc.y + temp.rows), Scalar(0, 255, 0), 2, 8);
+    // namedWindow("dst", 0);
+    // imshow("dst", frame_tape);
     // waitKey(0);
 
-    int p_num = p.size();
-    int line_num = 0;
-    list<pair<double, double>> line_kb; //储存检测到的直线的k和b
-
-    //每两点之间检测是由有足够边缘点
-    for (int i = 0; i < p_num; i++)
-    {
-        for (int j = i + 1; j < p_num; j++)
-        {
-            double dist = sqrt(pow(p[i].x - p[j].x, 2) + pow(p[i].y - p[j].y, 2));
-            if (dist < 1.5 * edge_n * template_size)
-                continue;
-
-            vector<Point> p_edge; //收集边缘点
-            for (int k = 1; k < edge_n; k++)
-            {
-                Point pp = p[i] + (double)k / edge_n * (p[j] - p[i]);
-                Mat region = edge(Rect(pp.x - template_size / 2, pp.y - template_size / 2, template_size, template_size));
-                // cout<<region<<endl;
-
-                //有边缘点，则确定边缘点位置
-                if (cv::sum(region)[0] != 0)
-                {
-                    Point loc;
-                    minMaxLoc(region, 0, 0, 0, &loc);
-                    p_edge.push_back(pp - Point(template_size / 2, template_size / 2) + loc);
-                }
-
-                // circle(srcImage, pp, 3, Scalar(0, 0, 255));
-            }
-
-            //若有，则重新拟合直线，保存k和b
-            if (p_edge.size() >= 0.8 * edge_n)
-            {
-
-                line_num++;
-                line_kb.push_back(leastSquare(p_edge));
-
-                // cout << k <<" "<< b << endl << endl;
-                // line(srcImage, Point(0, b), Point(1022, 1022 * k + b), Scalar(0, 0, 255));
-                // if (line_num == 3)
-                // {
-                //     cout << p[i] << endl
-                //          << p[j] << endl
-                //          << endl;
-                //     line(srcImage, Point(0, b), Point(1022, 1022 * k + b), Scalar(0, 0, 255));
-                //     goto draw;
-                // }
-            }
-        }
-    }
-    cout << "line num: " << line_num << endl;
-
-    //筛选3对直线
-    for (int k = 0; k < 3; k++)
-    {
-        list<pair<double, double>>::iterator i;
-        list<pair<double, double>>::iterator j;
-
-        double max = 0;
-        list<pair<double, double>>::iterator m_i;
-        list<pair<double, double>>::iterator m_j;
-
-        for (i = line_kb.begin(); i != line_kb.end(); i++)
-        {
-            j = i;
-            j++;
-            for (; j != line_kb.end(); j++)
-            {
-                double x = abs((*i).first / (*j).first);
-                double y = abs((*i).second / (*j).second);
-                x = x > 1 ? 1 / x : x;
-                y = y > 1 ? 1 / y : y;
-
-                if ((*i).first == 0 || (*j).first == 0)
-                {
-                    x = y;
-                }
-                else if ((*i).second != 0 && (*j).second != 0)
-                {
-                    x = (x + y) / 2;
-                }
-
-                if (x > max)
-                {
-                    max = x;
-                    m_i = i;
-                    m_j = j;
-                }
-            }
-        }
-
-        line(srcImage, Point(0, (*m_i).second), Point(1022, 1022 * (*m_i).first + (*m_i).second), Scalar(0, 0, 255));
-        line(srcImage, Point(0, (*m_j).second), Point(1022, 1022 * (*m_j).first + (*m_j).second), Scalar(0, 0, 255));
-
-        // for (i = line_kb.begin(); i != line_kb.end(); i++)
-        // {
-        //     cout << (*i).first << " " << (*i).second << endl;
-        // }
-        // cout << endl;
-
-        line_kb.erase(m_i);
-        line_kb.erase(m_j);
-
-        for (i = line_kb.begin(); i != line_kb.end(); i++)
-        {
-            cout << (*i).first << " " << (*i).second << endl;
-        }
-        cout << endl;
-    }
-draw:
-    namedWindow("line", 0);
-    imshow("line", srcImage);
-    waitKey(0);
-}
-
-pair<double, double> LineDecect::leastSquare(vector<Point> p_edge)
-{
-    int t1, t2, t3, t4;
-    t1 = t2 = t3 = t4 = 0;
-    int n = p_edge.size();
-    for (int i = 0; i < n; i++)
-    {
-        t1 += p_edge[i].x;
-        t2 += p_edge[i].y;
-        t3 += (p_edge[i].x * p_edge[i].y);
-        t4 += pow(p_edge[i].x, 2);
-    }
-
-    double k, b;
-    // k为无穷时b存x的值
-    if (n * t4 == t1 * t1)
-    {
-        k = DBL_MAX;
-        b = p_edge[0].x;
-    }
-    else
-    {
-        k = (double)(n * t3 - t1 * t2) / (n * t4 - t1 * t1);
-        b = (double)(t4 * t2 - t1 * t3) / (n * t4 - t1 * t1);
-    }
-
-    return {k, b};
-}
-
-Mat LineDecect::edgeDetect()
-{
-    Mat dstImage, edge;
-    dstImage.create(srcImage.size(), srcImage.type());
-
-    blur(srcGray, edge, Size(3, 3));
-    Canny(edge, edge, 3, 9, 3);
-
-    imshow("Canny边缘检测", edge);
-    waitKey(0);
-    return edge;
+    this->targetImg = frame_tape.clone();
 }
 
 void LineDecect::harrisCornorDetect(vector<Point> &p, int abs_dist)
 {
     // Harris corner parameters
-    int kThresh = 170;
+    int kThresh = 160;
     int kBlockSize = 5;
     int kApertureSize = 3;
     double k = 0.04;
@@ -384,7 +119,7 @@ void LineDecect::harrisCornorDetect(vector<Point> &p, int abs_dist)
     while (it != p.end())
     {
         cout << *it << endl;
-        circle(srcImage, *it, 20, Scalar(255, 0, 255), 3);
+        circle(srcImage, *it, 2, Scalar(0, 0, 255), 1);
         it++;
     }
     namedWindow("harris corner", 0);

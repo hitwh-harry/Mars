@@ -58,7 +58,7 @@ void Locate::pnp()
     }
 }
 
-void Locate::computeAngel()
+void Locate::computeAngle()
 {
     Eigen::Vector3f v1 = target_p_cam[2] - target_p_cam[1];
     Eigen::Vector3f v2 = target_p_cam[3] - target_p_cam[1];

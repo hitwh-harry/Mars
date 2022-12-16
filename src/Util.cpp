@@ -1,11 +1,40 @@
 #include "Util.h"
 
+pair<double, double> Util::leastSquare(vector<Point> p_edge)
+{
+    int t1, t2, t3, t4;
+    t1 = t2 = t3 = t4 = 0;
+    int n = p_edge.size();
+    for (int i = 0; i < n; i++)
+    {
+        t1 += p_edge[i].x;
+        t2 += p_edge[i].y;
+        t3 += (p_edge[i].x * p_edge[i].y);
+        t4 += pow(p_edge[i].x, 2);
+    }
+
+    double k, b;
+    // k为无穷时b存x的值
+    if (n * t4 == t1 * t1)
+    {
+        k = DBL_MAX;
+        b = p_edge[0].x;
+    }
+    else
+    {
+        k = (double)(n * t3 - t1 * t2) / (n * t4 - t1 * t1);
+        b = (double)(t4 * t2 - t1 * t3) / (n * t4 - t1 * t1);
+    }
+
+    return {k, b};
+}
+
 void Util::downSample()
 {
 	Mat srcImage, newImage;
 	String s1 = "../pictures/";
 	String s2 = ".jpg";
-	for (int i = 1; i < 14; i++)
+	for (int i = 1; i < 9; i++)
 	{
 		Mat newImage;
 

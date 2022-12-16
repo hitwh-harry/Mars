@@ -27,7 +27,7 @@ public:
 
     void pnp();
 
-    void computeAngel();
+    void computeAngle();
 };
 
 #endif

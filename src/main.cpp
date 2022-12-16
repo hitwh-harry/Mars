@@ -17,22 +17,31 @@ int main()
 		throw exception();
 	}
 	Mat img = srcImage.clone();
-	cout<<img.rows<<img.cols<<endl;
+	// cout<<img.rows<<img.cols<<endl;
 	
-    circle(img, Point(254, 412), 2, Scalar(0, 0, 255), 1); //左上 (-66,-66.5,0)
-	circle(img, Point(257, 254), 2, Scalar(0, 0, 255), 1); //左下 (-66,66.5,0)
-    circle(img, Point(405, 255), 2, Scalar(0, 0, 255), 1); //右下 (66,66.5,0)
-	circle(img, Point(417, 409), 2, Scalar(0, 0, 255), 1); //中左上 (66,-66.5,0)
-	namedWindow("img", 0);
-    imshow("img", img);
-    waitKey(0);
+    // circle(img, Point(243, 233), 2, Scalar(0, 0, 255), 1); //左上 (-66,-66.5,0)
+	// circle(img, Point(244, 314), 2, Scalar(0, 0, 255), 1); //左下 (-66,66.5,0)
+    // circle(img, Point(325, 311), 2, Scalar(0, 0, 255), 1); //右下 (66,66.5,0)
+	// circle(img, Point(323, 231), 2, Scalar(0, 0, 255), 1); //中左上 (66,-66.5,0)
+	// namedWindow("img", 0);
+    // imshow("img", img);
+    // waitKey(0);
 
-	// LineDecect ld(img);
-
+	Mat templ=imread("../pictures/template/1.jpg");
+	// Mat templ=img(Range(203,341),Range(213,355));
+	// namedWindow("img", 0);
+    // imshow("img", templ);
+    // waitKey(0);
+	// imwrite("../pictures/template/1.jpg",templ);
+	
+	LineDecect ld(img);
+	ld.templateMatch(templ);
+	ld.houghDetect();
+	
+	
+	// // // 边缘检测法
 	// vector<Point> pv;
-	
-	// // 边缘检测法
-	// ld.harrisCornorDetect(pv, 10);
+	// ld.harrisCornorDetect(pv, 5);
 	// ld.edgeFindLine(pv, 10, 5);
 	// ld.edgeDetect();
 
@@ -42,5 +51,5 @@ int main()
 
 	// Locate locate;
 	// locate.pnp();
-	// locate.computeAngel();
+	// locate.computeAngle();
 }

@@ -22,6 +22,8 @@ using namespace cv;
 
 class Util {
 public:
+    static pair<double, double> leastSquare(vector<Point> p_edge); //最小二乘法
+
     static void calibrate();
 
     static void downSample();
